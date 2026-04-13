@@ -19,7 +19,6 @@ export default function MembersScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
   const router = useRouter();
   const userId = useAuthStore((s) => s.userId)!;
-  const displayName = useAuthStore((s) => s.displayName);
 
   const meta = useActiveConversationStore((s) => s.meta);
   const convKey = useActiveConversationStore((s) => s.conversationKey);
@@ -37,7 +36,7 @@ export default function MembersScreen() {
     if (!conversationId || !activeKey) return;
     setSharing(true);
     try {
-      const url = buildInviteUrl(conversationId, activeKey, displayName);
+      const url = buildInviteUrl(conversationId, activeKey, convName);
       await Share.share({
         message: `Join me on Pulses: ${url}`,
         url,

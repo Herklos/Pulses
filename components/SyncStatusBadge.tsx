@@ -2,6 +2,7 @@ import React from "react";
 import { View } from "react-native";
 import { useStore } from "zustand";
 import { getMessageStore } from "@/lib/sync/message-sync";
+import type { StoreApi } from "zustand";
 
 type Status = "synced" | "pending" | "syncing" | "error" | "offline" | "idle";
 
@@ -22,26 +23,24 @@ function getStatusColor(status: Status): string {
   }
 }
 
-export function SyncStatusBadge() {
-  const msgStore = getMessageStore();
-  const syncState = msgStore
-    ? // eslint-disable-next-line react-hooks/rules-of-hooks
-      useStore(msgStore, (s) => ({
-        syncing: s.syncing,
-        dirty: s.dirty,
-        error: s.error,
-        online: s.online,
-      }))
-    : null;
+interface ActiveBadgeProps {
+  store: StoreApi<{ syncing: boolean; dirty: boolean; error: string | null; online: boolean }>;
+}
+
+function ActiveSyncBadge({ store }: ActiveBadgeProps) {
+  const syncState = useStore(store, (s) => ({
+    syncing: s.syncing,
+    dirty: s.dirty,
+    error: s.error,
+    online: s.online,
+  }));
 
   let status: Status = "idle";
-  if (syncState) {
-    if (!syncState.online) status = "offline";
-    else if (syncState.error) status = "error";
-    else if (syncState.syncing) status = "syncing";
-    else if (syncState.dirty) status = "pending";
-    else status = "synced";
-  }
+  if (!syncState.online) status = "offline";
+  else if (syncState.error) status = "error";
+  else if (syncState.syncing) status = "syncing";
+  else if (syncState.dirty) status = "pending";
+  else status = "synced";
 
   return (
     <View
@@ -53,4 +52,23 @@ export function SyncStatusBadge() {
       }}
     />
   );
+}
+
+export function SyncStatusBadge() {
+  const msgStore = getMessageStore();
+
+  if (!msgStore) {
+    return (
+      <View
+        style={{
+          width: 8,
+          height: 8,
+          borderRadius: 4,
+          backgroundColor: getStatusColor("idle"),
+        }}
+      />
+    );
+  }
+
+  return <ActiveSyncBadge store={msgStore} />;
 }

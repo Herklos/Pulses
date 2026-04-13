@@ -8,7 +8,24 @@
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
-    "build:web": "expo export --platform web"
+    "build:web": "expo export --platform web",
+    "test": "jest"
+  },
+  "jest": {
+    "preset": "jest-expo",
+    "testPathIgnorePatterns": [
+      "/node_modules/",
+      "/server/"
+    ],
+    "moduleNameMapper": {
+      "^@drakkar\\.software/starfish-client/(.+)$": "<rootDir>/node_modules/@drakkar.software/starfish-client/dist/$1.js",
+      "^@drakkar\\.software/starfish-client$": "<rootDir>/node_modules/@drakkar.software/starfish-client/dist/index.js",
+      "^@drakkar\\.software/starfish-protocol$": "<rootDir>/node_modules/@drakkar.software/starfish-protocol/dist/index.js",
+      "^@/(.*)$": "<rootDir>/$1"
+    },
+    "transformIgnorePatterns": [
+      "node_modules/(?!.*((jest-)?react-native|@react-native(-community)?|expo(nent)?|@expo(nent)?|@expo-google-fonts|react-navigation|@react-navigation|@unimodules|unimodules|sentry-expo|native-base|react-native-svg|@drakkar\\.software))"
+    ]
   },
   "dependencies": {
     "@babel/runtime": "^7.29.2",
@@ -51,7 +68,9 @@
   "devDependencies": {
     "@babel/core": "^7.29.0",
     "@tailwindcss/postcss": "^4.2.2",
+    "@types/jest": "^30.0.0",
     "@types/react": "~19.2.14",
+    "jest-expo": "^55.0.16",
     "tailwindcss": "^4.2.2",
     "typescript": "~5.9.3"
   }

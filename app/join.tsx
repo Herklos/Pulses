@@ -7,12 +7,11 @@ import {
   SafeAreaView,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import * as Linking from "expo-linking";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useConversationsStore } from "@/store/useConversationsStore";
 import { useActiveConversationStore } from "@/store/useActiveConversationStore";
 import { pullConversationMeta, pushConversationMeta } from "@/lib/sync/conversation-sync";
-import { parseInviteUrl } from "@/lib/invite";
+import { parseConvInviteToken } from "@/lib/identity";
 import type { ConversationIndexEntry } from "@/lib/types";
 
 export default function JoinScreen() {
@@ -41,8 +40,8 @@ export default function JoinScreen() {
       return;
     }
 
-    // Parse the token
-    const parsed = parseInviteUrl(`?t=${token}`);
+    // Parse the token (already extracted by Expo Router from the deep link)
+    const parsed = parseConvInviteToken(token);
     if (!parsed) {
       setStatus("error");
       setErrorMessage("Could not decode invite link.");
