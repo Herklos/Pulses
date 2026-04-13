@@ -1,0 +1,48 @@
+@import "tailwindcss/theme.css" layer(theme);
+@import "tailwindcss/preflight.css" layer(base);
+@import "tailwindcss/utilities.css";
+@import "nativewind/theme";
+
+/* Class-based dark mode */
+@custom-variant dark (&:is(.dark *));
+
+@source "./app/**/*.{ts,tsx}";
+@source "./components/**/*.{ts,tsx}";
+
+/* Pulses brand: indigo/violet palette */
+@theme inline {
+  --color-brand-indigo: #6366f1;
+  --color-brand-violet: #8b5cf6;
+  --color-brand-purple: #a855f7;
+}
+
+/* Primary palette — indigo */
+:root {
+  --color-primary-0: 238 242 255;
+  --color-primary-50: 238 242 255;
+  --color-primary-100: 224 231 255;
+  --color-primary-200: 199 210 254;
+  --color-primary-300: 165 180 252;
+  --color-primary-400: 129 140 248;
+  --color-primary-500: 99 102 241;
+  --color-primary-600: 79 70 229;
+  --color-primary-700: 67 56 202;
+  --color-primary-800: 55 48 163;
+  --color-primary-900: 49 46 129;
+  --color-primary-950: 30 27 75;
+}
+
+:root.dark {
+  --color-primary-0: 30 27 75;
+  --color-primary-50: 49 46 129;
+  --color-primary-100: 55 48 163;
+  --color-primary-200: 67 56 202;
+  --color-primary-300: 79 70 229;
+  --color-primary-400: 99 102 241;
+  --color-primary-500: 129 140 248;
+  --color-primary-600: 165 180 252;
+  --color-primary-700: 199 210 254;
+  --color-primary-800: 224 231 255;
+  --color-primary-900: 238 242 255;
+  --color-primary-950: 255 255 255;
+}

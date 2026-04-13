@@ -1,0 +1,17 @@
+name = "pulses-sync"
+main = "index.ts"
+compatibility_date = "2026-04-07"
+
+[[r2_buckets]]
+binding = "BUCKET"
+bucket_name = "pulses-sync"
+
+[vars]
+ENCRYPTION_SECRET = "change-me-in-production"
+
+[observability]
+[observability.logs]
+enabled = false
+invocation_logs = true
+[observability.traces]
+enabled = false

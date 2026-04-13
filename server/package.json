@@ -1,0 +1,16 @@
+{
+  "name": "pulses-sync",
+  "private": true,
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy"
+  },
+  "dependencies": {
+    "@drakkar.software/starfish-server": "1.14.0",
+    "hono": "4.12.12"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "4.20260408.1",
+    "wrangler": "4.81.0"
+  }
+}
