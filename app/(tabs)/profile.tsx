@@ -7,6 +7,7 @@ import {
   SafeAreaView,
   ScrollView,
   Alert,
+  Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { LogOut, Server, Eye, EyeOff, History } from "lucide-react-native";
@@ -57,22 +58,28 @@ export default function ProfileScreen() {
     setEditingHistory(false);
   }
 
-  function handleLogout() {
-    Alert.alert(
-      "Log Out",
-      "Make sure you've saved your passphrase before logging out. You won't be able to recover your account without it.",
-      [
-        { text: "Cancel", style: "cancel" },
-        {
-          text: "Log Out",
-          style: "destructive",
-          onPress: async () => {
-            await logout();
-            router.replace("/login");
-          },
+  async function handleLogout() {
+    const message =
+      "Make sure you've saved your passphrase before logging out. You won't be able to recover your account without it.";
+
+    if (Platform.OS === "web") {
+      if (!window.confirm(`Log Out\n\n${message}`)) return;
+      await logout();
+      router.replace("/login");
+      return;
+    }
+
+    Alert.alert("Log Out", message, [
+      { text: "Cancel", style: "cancel" },
+      {
+        text: "Log Out",
+        style: "destructive",
+        onPress: async () => {
+          await logout();
+          router.replace("/login");
         },
-      ],
-    );
+      },
+    ]);
   }
 
   return (
