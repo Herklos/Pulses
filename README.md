@@ -97,7 +97,7 @@ Set the `ENCRYPTION_SECRET` environment variable in your Workers dashboard (used
 ```bash
 pnpm install
 # Set the server URL:
-echo "EXPO_PUBLIC_SYNC_URL=https://pulses-sync.your-subdomain.workers.dev/v1" > .env.local
+echo "EXPO_PUBLIC_SYNC_URL=https://pulses-sync.your-subdomain.workers.dev" > .env.local
 pnpm start --web
 ```
 
@@ -127,7 +127,7 @@ pnpm start
 cd server && pnpm dev
 
 # Health check
-curl http://localhost:8787/v1/health
+curl http://localhost:8787/health
 ```
 
 ## Known POC Limitations

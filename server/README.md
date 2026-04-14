@@ -41,7 +41,7 @@ pnpm install
 pnpm dev        # starts wrangler dev at http://localhost:8787
 ```
 
-Set `EXPO_PUBLIC_SYNC_URL=http://localhost:8787/v1` in the app's `.env.local` to point the client at the local server.
+Set `EXPO_PUBLIC_SYNC_URL=http://localhost:8787` in the app's `.env.local` to point the client at the local server.
 
 ## Deployment
 

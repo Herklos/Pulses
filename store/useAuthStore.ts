@@ -9,7 +9,7 @@ const HISTORY_DAYS_KEY = "pulses_history_days";
 
 const DEFAULT_HISTORY_DAYS = 7;
 
-const DEFAULT_SERVER_URL = process.env.EXPO_PUBLIC_SYNC_URL ?? "http://localhost:8787/v1";
+const DEFAULT_SERVER_URL = process.env.EXPO_PUBLIC_SYNC_URL ?? "http://localhost:8787";
 
 interface AuthState {
   passphrase: string | null;

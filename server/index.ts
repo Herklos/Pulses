@@ -1,5 +1,4 @@
 import { Hono } from "hono";
-import { cors } from "hono/cors";
 import type { Context } from "hono";
 import {
   createSyncRouter,
@@ -112,15 +111,6 @@ async function roleResolver(c: Context): Promise<AuthResult> {
 
 const app = new Hono<{ Bindings: Env }>();
 
-// CORS must be on the outer app so the preflight OPTIONS response is
-// produced before the request is forwarded to the inner sync router.
-app.use("/v1/*", cors({
-  origin: "*",
-  allowMethods: ["GET", "POST", "OPTIONS"],
-  allowHeaders: ["Authorization", "Content-Type", "Accept"],
-  maxAge: 86400,
-}));
-
 let cachedRouter: Hono | null = null;
 
 function getSyncRouter(env: Env): Hono {
@@ -145,10 +135,6 @@ function getSyncRouter(env: Env): Hono {
   return cachedRouter;
 }
 
-app.all("/v1/*", (c) => {
-  const url = new URL(c.req.raw.url);
-  url.pathname = url.pathname.replace(/^\/v1/, "") || "/";
-  return getSyncRouter(c.env).fetch(new Request(url, c.req.raw));
-});
+app.all("/*", (c) => getSyncRouter(c.env).fetch(c.req.raw));
 
 export default app;

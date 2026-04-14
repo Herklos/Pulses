@@ -74,7 +74,7 @@ pnpm install
 pnpm dev            # localhost:8787
 ```
 
-Set `EXPO_PUBLIC_SYNC_URL=http://localhost:8787/v1` in `.env.local` for local dev.
+Set `EXPO_PUBLIC_SYNC_URL=http://localhost:8787` in `.env.local` for local dev.
 
 ## Adding Features
 
@@ -101,9 +101,11 @@ client.pull(path) → { data, hash, timestamp }
 client.push(path, data, baseHash) → { hash, timestamp }
 
 // Sync manager
-new SyncManager({ client, pullPath, pushPath, encryptor?, onConflict?, ... })
+new SyncManager({ client, pullPath, pushPath, encryptionSecret?, encryptionSalt?, onConflict?, ... })
 sync.pull() / sync.push(data) / sync.update(fn)
-sync.startAdaptivePolling({ intervalMs, onUpdate })
+
+// Adaptive polling (standalone function, NOT a SyncManager method)
+startAdaptivePolling(pullFn, getStateFn, { intervalMs }) → AdaptivePollingControls { stop, pause, resume }
 
 // Encryptor
 createEncryptor(secret, salt) → { encrypt(data), decrypt(wrapper) }
