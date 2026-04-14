@@ -88,7 +88,6 @@ class R2ObjectStore implements ObjectStore {
 
 type Env = {
   BUCKET: R2Bucket;
-  ENCRYPTION_SECRET: string;
 };
 
 // ---------------------------------------------------------------------------
@@ -122,7 +121,6 @@ function getSyncRouter(env: Env): Hono {
     store,
     config,
     roleResolver,
-    encryptionSecret: env.ENCRYPTION_SECRET,
     cors: true,
     securityHeaders: true,
     logger: createConsoleLogger(),

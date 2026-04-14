@@ -90,8 +90,6 @@ pnpm install
 pnpm deploy
 ```
 
-Set the `ENCRYPTION_SECRET` environment variable in your Workers dashboard (used for server-level config encryption, separate from user data).
-
 ### 2. Run the client
 
 ```bash

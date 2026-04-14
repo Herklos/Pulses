@@ -28,9 +28,7 @@ Requests must include a `Bearer <authToken>` header. The server derives `userId`
 
 ## Environment Variables
 
-| Variable | Description |
-|---|---|
-| `ENCRYPTION_SECRET` | Server-level secret used by starfish-server internals. **Change before deploying to production.** |
+No environment variables required. All user data is encrypted client-side — the server stores opaque blobs and never needs encryption keys.
 
 R2 bucket binding is named `BUCKET` (see `wrangler.toml`).
 
@@ -49,11 +47,6 @@ Set `EXPO_PUBLIC_SYNC_URL=http://localhost:8787` in the app's `.env.local` to po
 pnpm deploy     # wrangler deploy
 ```
 
-Make sure to set `ENCRYPTION_SECRET` as a Wrangler secret rather than a plain `[vars]` entry in production:
-
-```bash
-wrangler secret put ENCRYPTION_SECRET
-```
 
 ## Project Structure
 
