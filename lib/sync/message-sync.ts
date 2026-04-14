@@ -14,6 +14,9 @@ import type { StoreApi } from "zustand/vanilla";
 import { getClient } from "@/lib/starfish";
 import { getTodayDateKey } from "@/lib/date";
 import { useMessagesStore } from "@/store/useMessagesStore";
+import { useAuthStore } from "@/store/useAuthStore";
+import { useActiveConversationStore } from "@/store/useActiveConversationStore";
+import { showMessageNotification } from "@/lib/notifications";
 import type { DayMessages } from "@/lib/types";
 
 let store: StoreApi<StarfishStore> | null = null;
@@ -51,6 +54,25 @@ export async function openConversationSync(
     onRemoteUpdate: (data) => {
       const dayMessages = data as DayMessages;
       if (dayMessages?.messages) {
+        const selfId = useAuthStore.getState().userId;
+        const convMeta = useActiveConversationStore.getState().meta;
+        const existingIds = new Set(
+          useMessagesStore.getState().messages.map((m) => m.id),
+        );
+
+        const newFromOthers = dayMessages.messages.filter(
+          (m) => !existingIds.has(m.id) && m.senderId !== selfId && !m.deleted,
+        );
+        if (newFromOthers.length > 0) {
+          const last = newFromOthers[newFromOthers.length - 1];
+          showMessageNotification(
+            last.senderName,
+            last.text,
+            convMeta?.name ?? conversationId,
+            conversationId,
+          );
+        }
+
         useMessagesStore.getState().mergeMessages(dayMessages.messages);
       }
     },

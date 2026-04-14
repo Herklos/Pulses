@@ -10,9 +10,14 @@ import {
   Platform,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { LogOut, Server, Eye, EyeOff, History } from "lucide-react-native";
+import { LogOut, Server, Eye, EyeOff, History, Bell } from "lucide-react-native";
 import { useAuthStore } from "@/store/useAuthStore";
 import { PassphraseDisplay } from "@/components/PassphraseDisplay";
+import {
+  isNotificationSupported,
+  getNotificationPermission,
+  requestNotificationPermission,
+} from "@/lib/notifications";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -33,6 +38,9 @@ export default function ProfileScreen() {
   const [editingHistory, setEditingHistory] = useState(false);
   const [historyValue, setHistoryValue] = useState(String(historyDays));
   const [showPassphrase, setShowPassphrase] = useState(false);
+  const [notifPermission, setNotifPermission] = useState<NotificationPermission | null>(
+    () => getNotificationPermission(),
+  );
 
   function handleSaveName() {
     if (nameValue.trim()) {
@@ -56,6 +64,11 @@ export default function ProfileScreen() {
       setHistoryValue(String(historyDays));
     }
     setEditingHistory(false);
+  }
+
+  async function handleEnableNotifications() {
+    const result = await requestNotificationPermission();
+    setNotifPermission(result);
   }
 
   async function handleLogout() {
@@ -267,6 +280,32 @@ export default function ProfileScreen() {
             )}
           </View>
         </View>
+
+        {/* Notifications (web only) */}
+        {Platform.OS === "web" && isNotificationSupported() && (
+          <View className="bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden">
+            <View className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex-row items-center gap-2">
+              <Bell size={14} color="#9ca3af" />
+              <Text className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
+                Notifications
+              </Text>
+            </View>
+            <View className="px-4 py-3 flex-row items-center gap-3">
+              <Text className="flex-1 text-sm text-gray-700 dark:text-gray-300">
+                {notifPermission === "granted"
+                  ? "Browser notifications enabled"
+                  : notifPermission === "denied"
+                    ? "Blocked — allow in browser settings"
+                    : "Get notified for new messages"}
+              </Text>
+              {notifPermission !== "granted" && notifPermission !== "denied" && (
+                <TouchableOpacity onPress={handleEnableNotifications}>
+                  <Text className="text-indigo-600 text-sm">Enable</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          </View>
+        )}
 
         {/* Logout */}
         <TouchableOpacity
