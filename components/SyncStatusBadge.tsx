@@ -28,18 +28,18 @@ interface ActiveBadgeProps {
 }
 
 function ActiveSyncBadge({ store }: ActiveBadgeProps) {
-  const syncState = useStore(store, (s) => ({
-    syncing: s.syncing,
-    dirty: s.dirty,
-    error: s.error,
-    online: s.online,
-  }));
+  // Use separate primitive selectors — an object-returning selector creates
+  // a new reference every call, which causes useSyncExternalStore to loop.
+  const syncing = useStore(store, (s) => s.syncing);
+  const dirty = useStore(store, (s) => s.dirty);
+  const error = useStore(store, (s) => s.error);
+  const online = useStore(store, (s) => s.online);
 
   let status: Status = "idle";
-  if (!syncState.online) status = "offline";
-  else if (syncState.error) status = "error";
-  else if (syncState.syncing) status = "syncing";
-  else if (syncState.dirty) status = "pending";
+  if (!online) status = "offline";
+  else if (error) status = "error";
+  else if (syncing) status = "syncing";
+  else if (dirty) status = "pending";
   else status = "synced";
 
   return (

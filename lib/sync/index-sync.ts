@@ -81,10 +81,15 @@ export async function initIndexSync(creds: IndexSyncCreds): Promise<void> {
     // Server might not have the document yet — that's fine
   }
 
-  // Start polling every ~10 seconds
+  // Start polling every ~10 seconds.
+  // Guard against null store in case teardownIndexSync() runs while this
+  // async function is still awaiting the initial pull.
   pollingControls = startAdaptivePolling(
-    () => store!.getState().pull(),
-    () => ({ online: store!.getState().online, syncing: store!.getState().syncing }),
+    () => store?.getState().pull() ?? Promise.resolve(),
+    () =>
+      store
+        ? { online: store.getState().online, syncing: store.getState().syncing }
+        : { online: false, syncing: false },
     { intervalMs: 10000 },
   );
 }

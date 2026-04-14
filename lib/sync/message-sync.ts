@@ -21,8 +21,6 @@ let debouncedNotify: (() => void) | null = null;
 let debouncedCancel: (() => void) | null = null;
 let syncManager: SyncManager | null = null;
 let pollingControls: AdaptivePollingControls | null = null;
-let activeConvId: string | null = null;
-let activeConvKey: string | null = null;
 
 export async function openConversationSync(
   conversationId: string,
@@ -31,8 +29,6 @@ export async function openConversationSync(
   // Tear down previous if switching conversations
   closeConversationSync();
 
-  activeConvId = conversationId;
-  activeConvKey = conversationKey;
   const dateKey = getTodayDateKey();
   const client = getClient();
 
@@ -88,10 +84,16 @@ export async function openConversationSync(
     // No messages yet for today — that's fine
   }
 
-  // Poll every ~5 seconds while conversation is open
+  // Poll every ~5 seconds while conversation is open.
+  // Guard against null store: closeConversationSync() may run while this
+  // async function is still awaiting, leaving store=null by the time the
+  // interval fires.
   pollingControls = startAdaptivePolling(
-    () => store!.getState().pull(),
-    () => ({ online: store!.getState().online, syncing: store!.getState().syncing }),
+    () => store?.getState().pull() ?? Promise.resolve(),
+    () =>
+      store
+        ? { online: store.getState().online, syncing: store.getState().syncing }
+        : { online: false, syncing: false },
     { intervalMs: 5000 },
   );
 }
@@ -113,6 +115,4 @@ export function closeConversationSync(): void {
   debouncedNotify = null;
   debouncedCancel = null;
   store = null;
-  activeConvId = null;
-  activeConvKey = null;
 }
