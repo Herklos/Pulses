@@ -6,7 +6,9 @@ import {
   SafeAreaView,
   Share,
   ActivityIndicator,
+  Platform,
 } from "react-native";
+import * as Clipboard from "expo-clipboard";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { X, Link } from "lucide-react-native";
 import { useAuthStore } from "@/store/useAuthStore";
@@ -31,16 +33,22 @@ export default function MembersScreen() {
   const members = meta?.members ?? [];
 
   const [sharing, setSharing] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   async function handleShareInvite() {
     if (!conversationId || !activeKey) return;
     setSharing(true);
     try {
       const url = buildInviteUrl(conversationId, activeKey, convName);
-      await Share.share({
-        message: `Join me on Pulses: ${url}`,
-        url,
-      });
+
+      if (Platform.OS === "web") {
+        await Clipboard.setStringAsync(url);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+        return;
+      }
+
+      await Share.share({ message: `Join me on Pulses: ${url}`, url });
     } catch {
       // User dismissed the share sheet
     } finally {
@@ -93,7 +101,7 @@ export default function MembersScreen() {
             <>
               <Link size={18} color="white" />
               <Text className="text-white font-semibold text-base">
-                Share Invite Link
+                {copied ? "Copied!" : "Share Invite Link"}
               </Text>
             </>
           )}
