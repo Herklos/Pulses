@@ -23,15 +23,25 @@ export async function pushConversationMeta(
   conversationId: string,
   conversationKey: string,
   meta: ConversationMeta,
-  baseHash?: string,
+  baseHash?: string | null,
 ): Promise<void> {
   const client = getClient();
   const encryptor = createConversationEncryptor(conversationKey, conversationId);
   const encrypted = await encryptor.encrypt(meta);
 
-  const currentHash =
-    baseHash ??
-    (await client.pull(`/pull/conv/${conversationId}/meta`)).hash;
+  let currentHash: string | null;
+  if (baseHash !== undefined) {
+    // Caller provided explicit hash (or null for a known-new document)
+    currentHash = baseHash;
+  } else {
+    // Pull current hash; if doc doesn't exist yet, create new
+    try {
+      currentHash = (await client.pull(`/pull/conv/${conversationId}/meta`)).hash;
+    } catch {
+      currentHash = null;
+    }
+  }
+
   await client.push(`/push/conv/${conversationId}/meta`, encrypted, currentHash);
 }
 

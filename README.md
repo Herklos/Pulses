@@ -56,7 +56,7 @@ Pulses/
     new-conversation.tsx  # Create DM or group
     (tabs)/               # Bottom tab navigator
       index.tsx           # Conversation list
-      profile.tsx         # Profile + settings
+      profile.tsx         # Profile + settings (display name, server URL, history days)
     conversation/
       [conversationId].tsx           # Chat screen
       [conversationId]/members.tsx   # Member list + invite
@@ -134,5 +134,5 @@ curl http://localhost:8787/v1/health
 
 - **Polling only** — no WebSocket push. Messages appear after the next poll interval (~5s while in a conversation, ~10s on the list screen)
 - **No key rotation** — removing a member from a group doesn't revoke their access to new messages (the conversation key is fixed)
-- **No message history across days** — the chat screen only shows today's messages; historical days are tracked in `activeDateKeys` but the UI doesn't paginate them yet
 - **No push notifications** — background message delivery requires a separate notification service
+- **History window** — only the last N days of messages are loaded per conversation (configurable in Profile → Message History, default 7 days)

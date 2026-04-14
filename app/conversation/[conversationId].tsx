@@ -21,11 +21,12 @@ import {
 import {
   pullConversationMeta,
   pushConversationMeta,
+  pullDayMessages,
 } from "@/lib/sync/conversation-sync";
 import { MessageList } from "@/components/MessageList";
 import { MessageComposer } from "@/components/MessageComposer";
 import { SyncStatusBadge } from "@/components/SyncStatusBadge";
-import { getTodayDateKey } from "@/lib/date";
+import { getTodayDateKey, formatDateKey } from "@/lib/date";
 import type { Message } from "@/lib/types";
 
 export default function ConversationScreen() {
@@ -34,6 +35,7 @@ export default function ConversationScreen() {
 
   const userId = useAuthStore((s) => s.userId)!;
   const displayName = useAuthStore((s) => s.displayName);
+  const historyDays = useAuthStore((s) => s.historyDays);
 
   const conversations = useConversationsStore((s) => s.conversations);
   const updateConversation = useConversationsStore((s) => s.updateConversation);
@@ -69,17 +71,45 @@ export default function ConversationScreen() {
     clearMessages();
     openConversationSync(conversationId, convKey).catch(console.error);
 
-    // Pull conversation meta in background
+    // Pull conversation meta, then load historical day messages
     pullConversationMeta(conversationId, convKey)
-      .then((result) => {
-        if (result) setMeta(result.meta);
+      .then(async (result) => {
+        if (!result) return;
+        setMeta(result.meta);
+
+        // Compute cutoff: only load days within the historyDays window
+        const today = getTodayDateKey();
+        const cutoff = new Date();
+        cutoff.setDate(cutoff.getDate() - historyDays);
+        const cutoffKey = formatDateKey(cutoff);
+
+        const currentlyLoaded = useMessagesStore.getState().loadedDateKeys;
+        const keysToFetch = result.meta.activeDateKeys.filter(
+          (k) => k !== today && k >= cutoffKey && !currentlyLoaded.includes(k),
+        );
+
+        if (keysToFetch.length > 0) {
+          const days = await Promise.all(
+            keysToFetch.map((dateKey) =>
+              pullDayMessages(conversationId, convKey, dateKey),
+            ),
+          );
+          const store = useMessagesStore.getState();
+          for (let i = 0; i < keysToFetch.length; i++) {
+            const day = days[i];
+            if (day?.messages) {
+              store.mergeMessages(day.messages);
+            }
+            store.markDateKeyLoaded(keysToFetch[i]);
+          }
+        }
       })
       .catch(console.error);
 
     return () => {
       closeConversationSync();
     };
-  }, [conversationId, convKey]);
+  }, [conversationId, convKey, historyDays]);
 
   const handleSend = useCallback(
     async (text: string) => {

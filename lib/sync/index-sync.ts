@@ -3,6 +3,8 @@ import {
   consoleSyncLogger,
   createUnionMerge,
   createDebouncedSync,
+  startAdaptivePolling,
+  type AdaptivePollingControls,
 } from "@drakkar.software/starfish-client";
 import {
   createStarfishStore,
@@ -10,7 +12,6 @@ import {
 } from "@drakkar.software/starfish-client/zustand";
 import type { StoreApi } from "zustand/vanilla";
 import { getClient } from "@/lib/starfish";
-import { createUserIndexEncryptor } from "@/lib/crypto";
 import { useConversationsStore } from "@/store/useConversationsStore";
 import type { UserIndex } from "@/lib/types";
 
@@ -24,21 +25,17 @@ let store: StoreApi<StarfishStore> | null = null;
 let debouncedNotify: (() => void) | null = null;
 let debouncedCancel: (() => void) | null = null;
 let syncManager: SyncManager | null = null;
+let pollingControls: AdaptivePollingControls | null = null;
 
 export async function initIndexSync(creds: IndexSyncCreds): Promise<void> {
   const client = getClient();
-  const encryptor = createUserIndexEncryptor({
-    passphrase: "",
-    userId: creds.userId,
-    authToken: creds.authToken,
-    encryptionSecret: creds.encryptionSecret,
-  });
 
   syncManager = new SyncManager({
     client,
     pullPath: `/pull/user-index/${creds.userId}`,
     pushPath: `/push/user-index/${creds.userId}`,
-    encryptor,
+    encryptionSecret: creds.encryptionSecret,
+    encryptionSalt: creds.userId,
     onConflict: createUnionMerge({ timestampKey: "updatedAt" }),
     maxRetries: 3,
     loggerName: "index-sync",
@@ -85,14 +82,11 @@ export async function initIndexSync(creds: IndexSyncCreds): Promise<void> {
   }
 
   // Start polling every ~10 seconds
-  syncManager.startAdaptivePolling({
-    onUpdate: (data) => {
-      const index = data as UserIndex;
-      if (index?.conversations) {
-        useConversationsStore.getState().setConversations(index.conversations);
-      }
-    },
-  });
+  pollingControls = startAdaptivePolling(
+    () => store!.getState().pull(),
+    () => ({ online: store!.getState().online, syncing: store!.getState().syncing }),
+    { intervalMs: 10000 },
+  );
 }
 
 export function getIndexStore(): StoreApi<StarfishStore> | null {
@@ -106,7 +100,8 @@ export function notifyIndexSync(): void {
 
 export function teardownIndexSync(): void {
   debouncedCancel?.();
-  syncManager?.stopAdaptivePolling?.();
+  pollingControls?.stop();
+  pollingControls = null;
   syncManager = null;
   debouncedNotify = null;
   debouncedCancel = null;

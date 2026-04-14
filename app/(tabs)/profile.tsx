@@ -9,7 +9,7 @@ import {
   Alert,
 } from "react-native";
 import { useRouter } from "expo-router";
-import { LogOut, Server, Eye, EyeOff } from "lucide-react-native";
+import { LogOut, Server, Eye, EyeOff, History } from "lucide-react-native";
 import { useAuthStore } from "@/store/useAuthStore";
 import { PassphraseDisplay } from "@/components/PassphraseDisplay";
 
@@ -19,14 +19,18 @@ export default function ProfileScreen() {
   const passphrase = useAuthStore((s) => s.passphrase);
   const userId = useAuthStore((s) => s.userId);
   const serverUrl = useAuthStore((s) => s.serverUrl);
+  const historyDays = useAuthStore((s) => s.historyDays);
   const setDisplayName = useAuthStore((s) => s.setDisplayName);
   const setServerUrl = useAuthStore((s) => s.setServerUrl);
+  const setHistoryDays = useAuthStore((s) => s.setHistoryDays);
   const logout = useAuthStore((s) => s.logout);
 
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(displayName);
   const [editingServer, setEditingServer] = useState(false);
   const [serverValue, setServerValue] = useState(serverUrl);
+  const [editingHistory, setEditingHistory] = useState(false);
+  const [historyValue, setHistoryValue] = useState(String(historyDays));
   const [showPassphrase, setShowPassphrase] = useState(false);
 
   function handleSaveName() {
@@ -41,6 +45,16 @@ export default function ProfileScreen() {
       setServerUrl(serverValue.trim());
     }
     setEditingServer(false);
+  }
+
+  function handleSaveHistory() {
+    const n = parseInt(historyValue, 10);
+    if (!isNaN(n) && n > 0) {
+      setHistoryDays(n);
+    } else {
+      setHistoryValue(String(historyDays));
+    }
+    setEditingHistory(false);
   }
 
   function handleLogout() {
@@ -160,6 +174,52 @@ export default function ProfileScreen() {
                   onPress={() => {
                     setServerValue(serverUrl);
                     setEditingServer(true);
+                  }}
+                >
+                  <Text className="text-indigo-600 text-sm">Edit</Text>
+                </TouchableOpacity>
+              </>
+            )}
+          </View>
+        </View>
+
+        {/* Message History */}
+        <View className="bg-gray-50 dark:bg-gray-900 rounded-xl overflow-hidden">
+          <View className="px-4 py-3 border-b border-gray-100 dark:border-gray-800 flex-row items-center gap-2">
+            <History size={14} color="#9ca3af" />
+            <Text className="text-xs font-semibold text-gray-500 uppercase tracking-widest">
+              Message History
+            </Text>
+          </View>
+          <View className="px-4 py-3 flex-row items-center gap-3">
+            {editingHistory ? (
+              <>
+                <TextInput
+                  className="flex-1 text-sm font-mono text-gray-900 dark:text-white"
+                  value={historyValue}
+                  onChangeText={setHistoryValue}
+                  autoFocus
+                  keyboardType="number-pad"
+                  returnKeyType="done"
+                  onSubmitEditing={handleSaveHistory}
+                />
+                <TouchableOpacity onPress={handleSaveHistory}>
+                  <Text className="text-indigo-600 font-semibold text-sm">
+                    Save
+                  </Text>
+                </TouchableOpacity>
+              </>
+            ) : (
+              <>
+                <Text className="flex-1 text-sm text-gray-700 dark:text-gray-300">
+                  Load last{" "}
+                  <Text className="font-semibold">{historyDays}</Text>{" "}
+                  {historyDays === 1 ? "day" : "days"} of messages per chat
+                </Text>
+                <TouchableOpacity
+                  onPress={() => {
+                    setHistoryValue(String(historyDays));
+                    setEditingHistory(true);
                   }}
                 >
                   <Text className="text-indigo-600 text-sm">Edit</Text>

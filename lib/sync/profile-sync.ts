@@ -15,10 +15,20 @@ export async function pullProfile(userId: string): Promise<UserProfile | null> {
 export async function pushProfile(
   userId: string,
   profile: UserProfile,
-  baseHash?: string,
+  baseHash?: string | null,
 ): Promise<void> {
   const client = getClient();
-  const currentHash =
-    baseHash ?? (await client.pull(`/pull/profile/${userId}`)).hash;
+
+  let currentHash: string | null;
+  if (baseHash !== undefined) {
+    currentHash = baseHash;
+  } else {
+    try {
+      currentHash = (await client.pull(`/pull/profile/${userId}`)).hash;
+    } catch {
+      currentHash = null;
+    }
+  }
+
   await client.push(`/push/profile/${userId}`, profile, currentHash);
 }

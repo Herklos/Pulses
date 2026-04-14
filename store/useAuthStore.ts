@@ -5,6 +5,9 @@ import { storage } from "@/lib/kv-storage";
 const PASSPHRASE_KEY = "pulses_passphrase";
 const DISPLAY_NAME_KEY = "pulses_display_name";
 const SERVER_URL_KEY = "pulses_server_url";
+const HISTORY_DAYS_KEY = "pulses_history_days";
+
+const DEFAULT_HISTORY_DAYS = 7;
 
 const DEFAULT_SERVER_URL = process.env.EXPO_PUBLIC_SYNC_URL ?? "http://localhost:8787/v1";
 
@@ -15,6 +18,7 @@ interface AuthState {
   encryptionSecret: string | null;
   displayName: string;
   serverUrl: string;
+  historyDays: number;
   isAuthenticated: boolean;
   isLoading: boolean;
 }
@@ -30,6 +34,8 @@ interface AuthActions {
   setDisplayName(name: string): Promise<void>;
   /** Update server URL */
   setServerUrl(url: string): Promise<void>;
+  /** Update how many days of message history to load */
+  setHistoryDays(days: number): Promise<void>;
   /** Clear all credentials */
   logout(): Promise<void>;
 }
@@ -41,15 +47,17 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   encryptionSecret: null,
   displayName: "",
   serverUrl: DEFAULT_SERVER_URL,
+  historyDays: DEFAULT_HISTORY_DAYS,
   isAuthenticated: false,
   isLoading: true,
 
   async loadPersistedAuth() {
-    const [savedPassphrase, savedDisplayName, savedServerUrl] =
+    const [savedPassphrase, savedDisplayName, savedServerUrl, savedHistoryDays] =
       await Promise.all([
         storage.getItem(PASSPHRASE_KEY),
         storage.getItem(DISPLAY_NAME_KEY),
         storage.getItem(SERVER_URL_KEY),
+        storage.getItem(HISTORY_DAYS_KEY),
       ]);
 
     if (savedPassphrase) {
@@ -58,6 +66,7 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
         ...creds,
         displayName: savedDisplayName ?? "Me",
         serverUrl: savedServerUrl ?? DEFAULT_SERVER_URL,
+        historyDays: savedHistoryDays ? parseInt(savedHistoryDays, 10) : DEFAULT_HISTORY_DAYS,
         isAuthenticated: true,
         isLoading: false,
       });
@@ -98,6 +107,12 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   async setServerUrl(url: string) {
     await storage.setItem(SERVER_URL_KEY, url);
     set({ serverUrl: url });
+  },
+
+  async setHistoryDays(days: number) {
+    const clamped = Math.max(1, Math.min(365, days));
+    await storage.setItem(HISTORY_DAYS_KEY, String(clamped));
+    set({ historyDays: clamped });
   },
 
   async logout() {

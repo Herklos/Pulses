@@ -3,6 +3,8 @@ import {
   consoleSyncLogger,
   createUnionMerge,
   createDebouncedSync,
+  startAdaptivePolling,
+  type AdaptivePollingControls,
 } from "@drakkar.software/starfish-client";
 import {
   createStarfishStore,
@@ -10,7 +12,6 @@ import {
 } from "@drakkar.software/starfish-client/zustand";
 import type { StoreApi } from "zustand/vanilla";
 import { getClient } from "@/lib/starfish";
-import { createConversationEncryptor } from "@/lib/crypto";
 import { getTodayDateKey } from "@/lib/date";
 import { useMessagesStore } from "@/store/useMessagesStore";
 import type { DayMessages } from "@/lib/types";
@@ -19,6 +20,7 @@ let store: StoreApi<StarfishStore> | null = null;
 let debouncedNotify: (() => void) | null = null;
 let debouncedCancel: (() => void) | null = null;
 let syncManager: SyncManager | null = null;
+let pollingControls: AdaptivePollingControls | null = null;
 let activeConvId: string | null = null;
 let activeConvKey: string | null = null;
 
@@ -33,13 +35,13 @@ export async function openConversationSync(
   activeConvKey = conversationKey;
   const dateKey = getTodayDateKey();
   const client = getClient();
-  const encryptor = createConversationEncryptor(conversationKey, conversationId);
 
   syncManager = new SyncManager({
     client,
     pullPath: `/pull/conv/${conversationId}/msg/${dateKey}`,
     pushPath: `/push/conv/${conversationId}/msg/${dateKey}`,
-    encryptor,
+    encryptionSecret: conversationKey,
+    encryptionSalt: conversationId,
     onConflict: createUnionMerge({ timestampKey: "timestamp" }),
     maxRetries: 5,
     loggerName: `msg-sync-${conversationId}`,
@@ -53,7 +55,7 @@ export async function openConversationSync(
     onRemoteUpdate: (data) => {
       const dayMessages = data as DayMessages;
       if (dayMessages?.messages) {
-        useMessagesStore.getState().setMessages(dayMessages.messages);
+        useMessagesStore.getState().mergeMessages(dayMessages.messages);
       }
     },
   });
@@ -80,22 +82,18 @@ export async function openConversationSync(
     await syncManager.pull();
     const data = syncManager.getData() as DayMessages | null;
     if (data?.messages) {
-      useMessagesStore.getState().setMessages(data.messages);
+      useMessagesStore.getState().mergeMessages(data.messages);
     }
   } catch {
     // No messages yet for today — that's fine
   }
 
   // Poll every ~5 seconds while conversation is open
-  syncManager.startAdaptivePolling({
-    intervalMs: 5000,
-    onUpdate: (data) => {
-      const dayMessages = data as DayMessages;
-      if (dayMessages?.messages) {
-        useMessagesStore.getState().setMessages(dayMessages.messages);
-      }
-    },
-  });
+  pollingControls = startAdaptivePolling(
+    () => store!.getState().pull(),
+    () => ({ online: store!.getState().online, syncing: store!.getState().syncing }),
+    { intervalMs: 5000 },
+  );
 }
 
 export function getMessageStore(): StoreApi<StarfishStore> | null {
@@ -109,7 +107,8 @@ export function notifyMessageSync(): void {
 
 export function closeConversationSync(): void {
   debouncedCancel?.();
-  syncManager?.stopAdaptivePolling?.();
+  pollingControls?.stop();
+  pollingControls = null;
   syncManager = null;
   debouncedNotify = null;
   debouncedCancel = null;
