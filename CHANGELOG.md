@@ -1,5 +1,27 @@
 # Changelog
 
+## [0.3.0] — 2026-04-15
+
+### Changed
+
+- **Starfish upgraded to v1.17.0** — all three packages (`starfish-client`, `starfish-protocol`, `starfish-server`).
+  - `deriveCredentials` now returns `groupPublicKey` + `groupPrivateKey` (X25519 ECDH keys for future group key rotation). Both fields are stored in `AuthState` and returned by `deriveAuth`.
+  - Type system is stricter (`Record<string, unknown>` boundaries); all push/pull casts updated. Domain types now carry `[key: string]: unknown` index signatures so they satisfy the Starfish generic constraints.
+- **`SyncStatusBadge`** — replaced hand-rolled status logic with `deriveSyncStatus` from the official Zustand binding.
+
+### Added
+
+- **`createMobileLifecycle`** — wired in `_layout.tsx` after the index store is ready. Flushes dirty data when the app goes to background and pulls fresh data when foregrounded. Uses `AppState` + `NetInfo` (dependency injection, no extra deps).
+- **`setupCrossTabSync`** — enabled on web only in `index-sync.ts`. Uses `BroadcastChannel` (falls back to `localStorage` events) to keep multiple browser tabs in sync without extra server round-trips.
+- **Unread message count** — `useConversationsStore` tracks per-conversation unread counts (`incrementUnread`/`clearUnread`). Badges appear on conversation list items and on the Chats tab icon. Counts reset when a conversation is opened.
+- **Message edit & delete** — long-press any own message to edit (inline modal) or delete (soft tombstone via `deleted: true`). Edit shows a pencil icon on the timestamp row. Both actions use the existing `editedAt`/`deleted` fields on `Message` and trigger a debounced push.
+- **Pull-to-refresh** on the conversation list — pulls the index store to get the latest conversation list from the server.
+- **`KeyboardAvoidingView` in conversation screen** — the message composer no longer hides behind the keyboard on iOS.
+
+### Fixed
+
+- **Yesterday label** — date separator used `new Date(Date.now() - 86400000)` which produces wrong results near midnight in some timezones. Now uses a fixed noon UTC time (`dateKey + "T12:00:00"`) for locale formatting.
+
 ## [0.2.0] — 2026-04-14
 
 ### Fixed
