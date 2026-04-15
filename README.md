@@ -117,13 +117,26 @@ pnpm android
 
 ## Development
 
+### Local server setup
+
 ```bash
-# Start Expo dev server
+# 1. Create local secrets file (gitignored)
+touch server/.dev.vars
+
+# 2. Start the local Starfish server on port 8787
+#    R2 is simulated locally — data stored in server/.wrangler/state/
+npm run server:dev        # or: cd server && pnpm dev
+
+# 3. In a second terminal, point the app at localhost
+echo 'EXPO_PUBLIC_SYNC_URL=http://localhost:8787' > .env.local
+
+# 4. Start Expo dev server
 pnpm start
+```
 
-# Start Cloudflare Worker locally
-cd server && pnpm dev
+> For iOS simulator or physical device, replace `localhost` with your machine's LAN IP (e.g. `http://192.168.1.x:8787`).
 
+```bash
 # Health check
 curl http://localhost:8787/health
 ```
