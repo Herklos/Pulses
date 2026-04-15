@@ -6,6 +6,7 @@ export interface UserProfile {
   userId: string;
   displayName: string;
   updatedAt: string; // ISO-8601
+  [key: string]: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -26,6 +27,7 @@ export interface UserIndex {
   version: number;
   conversations: ConversationIndexEntry[];
   updatedAt: string; // ISO-8601
+  [key: string]: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -50,6 +52,7 @@ export interface ConversationMeta {
   // List of YYYY-MM-DD date keys that have messages.
   // Client uses this to know which day-documents to fetch for history.
   activeDateKeys: string[];
+  [key: string]: unknown;
 }
 
 // ---------------------------------------------------------------------------
@@ -72,4 +75,5 @@ export interface DayMessages {
   dateKey: string; // YYYY-MM-DD
   messages: Message[];
   updatedAt: string; // ISO-8601
+  [key: string]: unknown;
 }

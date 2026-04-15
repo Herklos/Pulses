@@ -1,3 +1,4 @@
+import { Platform } from "react-native";
 import {
   SyncManager,
   consoleSyncLogger,
@@ -10,6 +11,7 @@ import {
   createStarfishStore,
   type StarfishStore,
 } from "@drakkar.software/starfish-client/zustand";
+import { setupCrossTabSync } from "@drakkar.software/starfish-client/broadcast";
 import type { StoreApi } from "zustand/vanilla";
 import { getClient } from "@/lib/starfish";
 import { useConversationsStore } from "@/store/useConversationsStore";
@@ -26,6 +28,7 @@ let debouncedNotify: (() => void) | null = null;
 let debouncedCancel: (() => void) | null = null;
 let syncManager: SyncManager | null = null;
 let pollingControls: AdaptivePollingControls | null = null;
+let cleanupCrossTab: (() => void) | null = null;
 
 export async function initIndexSync(creds: IndexSyncCreds): Promise<void> {
   const client = getClient();
@@ -47,7 +50,7 @@ export async function initIndexSync(creds: IndexSyncCreds): Promise<void> {
     syncManager,
     storage: false,
     onRemoteUpdate: (data) => {
-      const index = data as UserIndex;
+      const index = data as unknown as UserIndex;
       if (index?.conversations) {
         useConversationsStore.getState().setConversations(index.conversations);
       }
@@ -63,7 +66,7 @@ export async function initIndexSync(creds: IndexSyncCreds): Promise<void> {
         conversations,
         updatedAt: new Date().toISOString(),
       };
-      return index;
+      return index as unknown as Record<string, unknown>;
     },
   });
 
@@ -73,12 +76,17 @@ export async function initIndexSync(creds: IndexSyncCreds): Promise<void> {
   // Initial pull to hydrate conversation list
   try {
     await syncManager.pull();
-    const data = syncManager.getData() as UserIndex | null;
+    const data = syncManager.getData() as unknown as UserIndex | null;
     if (data?.conversations) {
       useConversationsStore.getState().setConversations(data.conversations);
     }
   } catch {
     // Server might not have the document yet — that's fine
+  }
+
+  // Set up cross-tab sync on web (BroadcastChannel / localStorage fallback)
+  if (Platform.OS === "web") {
+    cleanupCrossTab = setupCrossTabSync(store, "index-sync");
   }
 
   // Start polling every ~10 seconds.
@@ -106,9 +114,11 @@ export function notifyIndexSync(): void {
 export function teardownIndexSync(): void {
   debouncedCancel?.();
   pollingControls?.stop();
+  cleanupCrossTab?.();
   pollingControls = null;
   syncManager = null;
   debouncedNotify = null;
   debouncedCancel = null;
+  cleanupCrossTab = null;
   store = null;
 }

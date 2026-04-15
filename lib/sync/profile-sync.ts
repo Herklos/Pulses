@@ -6,7 +6,7 @@ export async function pullProfile(userId: string): Promise<UserProfile | null> {
     const client = getClient();
     const result = await client.pull(`/pull/profile/${userId}`);
     if (!result.data) return null;
-    return result.data as UserProfile;
+    return result.data as unknown as UserProfile;
   } catch {
     return null;
   }
@@ -30,5 +30,5 @@ export async function pushProfile(
     }
   }
 
-  await client.push(`/push/profile/${userId}`, profile, currentHash);
+  await client.push(`/push/profile/${userId}`, profile as unknown as Record<string, unknown>, currentHash);
 }

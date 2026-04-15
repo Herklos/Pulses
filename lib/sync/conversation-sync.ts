@@ -13,7 +13,7 @@ export async function pullConversationMeta(
 
     const encryptor = createConversationEncryptor(conversationKey, conversationId);
     const decrypted = await encryptor.decrypt(result.data);
-    return { meta: decrypted as ConversationMeta, hash: result.hash };
+    return { meta: decrypted as unknown as ConversationMeta, hash: result.hash };
   } catch {
     return null;
   }
@@ -27,7 +27,7 @@ export async function pushConversationMeta(
 ): Promise<void> {
   const client = getClient();
   const encryptor = createConversationEncryptor(conversationKey, conversationId);
-  const encrypted = await encryptor.encrypt(meta);
+  const encrypted = await encryptor.encrypt(meta as unknown as Record<string, unknown>);
 
   let currentHash: string | null;
   if (baseHash !== undefined) {
@@ -59,7 +59,7 @@ export async function pullDayMessages(
 
     const encryptor = createConversationEncryptor(conversationKey, conversationId);
     const decrypted = await encryptor.decrypt(result.data);
-    return decrypted as DayMessages;
+    return decrypted as unknown as DayMessages;
   } catch {
     return null;
   }

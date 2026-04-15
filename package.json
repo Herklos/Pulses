@@ -30,8 +30,8 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.29.2",
-    "@drakkar.software/starfish-client": "^1.14.0",
-    "@drakkar.software/starfish-protocol": "^1.14.0",
+    "@drakkar.software/starfish-client": "1.17.0",
+    "@drakkar.software/starfish-protocol": "1.17.0",
     "@react-native-community/netinfo": "^11.5.2",
     "expo": "~55.0.13",
     "expo-clipboard": "~7.0.1",

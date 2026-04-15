@@ -1,10 +1,11 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
   View,
   Text,
   FlatList,
   TouchableOpacity,
   SafeAreaView,
+  RefreshControl,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { Plus } from "lucide-react-native";
@@ -14,6 +15,7 @@ import { useAuthStore } from "@/store/useAuthStore";
 import { ConversationListItem } from "@/components/ConversationListItem";
 import { EmptyState } from "@/components/EmptyState";
 import { pullDayMessages } from "@/lib/sync/conversation-sync";
+import { getIndexStore } from "@/lib/sync/index-sync";
 import { getTodayDateKey } from "@/lib/date";
 import { showMessageNotification } from "@/lib/notifications";
 import type { ConversationIndexEntry } from "@/lib/types";
@@ -23,10 +25,11 @@ const HOME_POLL_MS = 30_000;
 export default function ChatsScreen() {
   const router = useRouter();
   const conversations = useConversationsStore((s) => s.conversations);
+  const unreadCounts = useConversationsStore((s) => s.unreadCounts);
   const openConversation = useActiveConversationStore((s) => s.open);
+  const [refreshing, setRefreshing] = useState(false);
 
   // Background poll: check every 30s for new messages in all conversations.
-  // Skips the active conversation (handled by the in-conversation 5s message sync).
   useEffect(() => {
     async function poll() {
       const selfId = useAuthStore.getState().userId;
@@ -57,6 +60,7 @@ export default function ChatsScreen() {
             lastMessageAt: latest.timestamp,
             lastMessagePreview: latest.text.slice(0, 60),
           });
+          useConversationsStore.getState().incrementUnread(conv.conversationId, newFromOthers.length);
           showMessageNotification(
             latest.senderName,
             latest.text,
@@ -71,6 +75,20 @@ export default function ChatsScreen() {
 
     const id = setInterval(poll, HOME_POLL_MS);
     return () => clearInterval(id);
+  }, []);
+
+  const handleRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      const indexStore = getIndexStore();
+      if (indexStore) {
+        await indexStore.getState().pull();
+      }
+    } catch {
+      // ignore
+    } finally {
+      setRefreshing(false);
+    }
   }, []);
 
   function handleOpenConversation(conv: ConversationIndexEntry) {
@@ -107,12 +125,20 @@ export default function ChatsScreen() {
           renderItem={({ item }) => (
             <ConversationListItem
               conversation={item}
+              unreadCount={unreadCounts[item.conversationId] ?? 0}
               onPress={() => handleOpenConversation(item)}
             />
           )}
           ItemSeparatorComponent={() => (
             <View className="h-px bg-gray-100 dark:bg-gray-800 mx-4" />
           )}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor="#6366f1"
+            />
+          }
         />
       )}
     </SafeAreaView>

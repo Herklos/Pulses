@@ -15,11 +15,11 @@ importers:
         specifier: ^7.29.2
         version: 7.29.2
       '@drakkar.software/starfish-client':
-        specifier: ^1.14.0
-        version: 1.14.0(react@19.2.0)(zustand@5.0.12(@types/react@19.2.14)(react@19.2.0)(use-sync-external-store@1.6.0(react@19.2.0)))
+        specifier: 1.17.0
+        version: 1.17.0(react@19.2.0)(zustand@5.0.12(@types/react@19.2.14)(react@19.2.0)(use-sync-external-store@1.6.0(react@19.2.0)))
       '@drakkar.software/starfish-protocol':
-        specifier: ^1.14.0
-        version: 1.14.0
+        specifier: 1.17.0
+        version: 1.17.0
       '@react-native-community/netinfo':
         specifier: ^11.5.2
         version: 11.5.2(react-native@0.83.4(@babel/core@7.29.0)(@types/react@19.2.14)(react@19.2.0))(react@19.2.0)
@@ -650,8 +650,8 @@ packages:
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
 
-  '@drakkar.software/starfish-client@1.14.0':
-    resolution: {integrity: sha512-zev+ZgstWiVFQrhu8r0WPMCWaxZ3Kmn1jw8dpUQC+dxqRW9YS1eXHH4qnkUOgO1JEsJWahwJXhEe+Q7BK/mF9g==}
+  '@drakkar.software/starfish-client@1.17.0':
+    resolution: {integrity: sha512-rK4n+Qay3iaDRSLvfoVpBptM9NpEr5hdyE01O30CHuaMkU7wtP1T8pASC9f4RAcxgvIXNKz+C8n4MLjartDQ7g==}
     peerDependencies:
       '@legendapp/state': '>=2.0.0'
       immer: '>=9.0.0'
@@ -667,8 +667,8 @@ packages:
       zustand:
         optional: true
 
-  '@drakkar.software/starfish-protocol@1.14.0':
-    resolution: {integrity: sha512-fPsUMtPlYzw8i/xHlSnHY+4RJQIuu+Po5yA0ZVSmOSR3NRwXGAc/Pf4z9j9pDtYXt6/u7BLjsYrsrtJqq0ZV0w==}
+  '@drakkar.software/starfish-protocol@1.17.0':
+    resolution: {integrity: sha512-gu6UYwC73PE0bbsBG/d1P7CcKp5zePKdtO8LN49x9d40RABZFFD2xprWxCyFPG5kxTnNCxohd0AMao9DgEyirQ==}
 
   '@egjs/hammerjs@2.0.17':
     resolution: {integrity: sha512-XQsZgjm2EcVUiZQf11UBJQfmZeEmOW8DpI1gsFeln6w0ae0ii4dMQEQ0kjl6DspdWX1aGY1/loyXnP0JS06e/A==}
@@ -966,6 +966,14 @@ packages:
 
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
+
+  '@noble/curves@2.2.0':
+    resolution: {integrity: sha512-T/BoHgFXirb0ENSPBquzX0rcjXeM6Lo892a2jlYJkqk83LqZx0l1Of7DzlKJ6jkpvMrkHSnAcgb5JegL8SeIkQ==}
+    engines: {node: '>= 20.19.0'}
+
+  '@noble/hashes@2.2.0':
+    resolution: {integrity: sha512-IYqDGiTXab6FniAgnSdZwgWbomxpy9FtYvLKs7wCUs2a8RkITG+DFGO1DM9cr+E3/RgADRpFjrKVaJ1z6sjtEg==}
+    engines: {node: '>= 20.19.0'}
 
   '@radix-ui/primitive@1.1.3':
     resolution: {integrity: sha512-JTF99U/6XIjCBo0wqkU5sK10glYe27MRRsfwoiq5zzOEZLHU3A3KCMa5X/azekYRCJ0HlwI0crAXS/5dEHTzDg==}
@@ -4798,14 +4806,15 @@ snapshots:
 
   '@bcoe/v8-coverage@0.2.3': {}
 
-  '@drakkar.software/starfish-client@1.14.0(react@19.2.0)(zustand@5.0.12(@types/react@19.2.14)(react@19.2.0)(use-sync-external-store@1.6.0(react@19.2.0)))':
+  '@drakkar.software/starfish-client@1.17.0(react@19.2.0)(zustand@5.0.12(@types/react@19.2.14)(react@19.2.0)(use-sync-external-store@1.6.0(react@19.2.0)))':
     dependencies:
-      '@drakkar.software/starfish-protocol': 1.14.0
+      '@drakkar.software/starfish-protocol': 1.17.0
+      '@noble/curves': 2.2.0
     optionalDependencies:
       react: 19.2.0
       zustand: 5.0.12(@types/react@19.2.14)(react@19.2.0)(use-sync-external-store@1.6.0(react@19.2.0))
 
-  '@drakkar.software/starfish-protocol@1.14.0': {}
+  '@drakkar.software/starfish-protocol@1.17.0': {}
 
   '@egjs/hammerjs@2.0.17':
     dependencies:
@@ -5386,6 +5395,12 @@ snapshots:
     dependencies:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
+
+  '@noble/curves@2.2.0':
+    dependencies:
+      '@noble/hashes': 2.2.0
+
+  '@noble/hashes@2.2.0': {}
 
   '@radix-ui/primitive@1.1.3': {}
 

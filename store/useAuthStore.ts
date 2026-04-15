@@ -16,6 +16,8 @@ interface AuthState {
   userId: string | null;
   authToken: string | null;
   encryptionSecret: string | null;
+  groupPublicKey: string | null;
+  groupPrivateKey: string | null;
   displayName: string;
   serverUrl: string;
   historyDays: number;
@@ -45,6 +47,8 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
   userId: null,
   authToken: null,
   encryptionSecret: null,
+  groupPublicKey: null,
+  groupPrivateKey: null,
   displayName: "",
   serverUrl: DEFAULT_SERVER_URL,
   historyDays: DEFAULT_HISTORY_DAYS,
@@ -125,6 +129,8 @@ export const useAuthStore = create<AuthState & AuthActions>((set, get) => ({
       userId: null,
       authToken: null,
       encryptionSecret: null,
+      groupPublicKey: null,
+      groupPrivateKey: null,
       displayName: "",
       isAuthenticated: false,
     });

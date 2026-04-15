@@ -5,6 +5,8 @@ import {
   TouchableOpacity,
   SafeAreaView,
   ActivityIndicator,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ArrowLeft, Users } from "lucide-react-native";
@@ -28,6 +30,7 @@ import { MessageComposer } from "@/components/MessageComposer";
 import { SyncStatusBadge } from "@/components/SyncStatusBadge";
 import { getTodayDateKey, formatDateKey } from "@/lib/date";
 import type { Message } from "@/lib/types";
+import { notifyIndexSync } from "@/lib/sync/index-sync";
 
 export default function ConversationScreen() {
   const { conversationId } = useLocalSearchParams<{ conversationId: string }>();
@@ -57,11 +60,13 @@ export default function ConversationScreen() {
   const isGroup = meta?.isGroup ?? convEntry?.isGroup ?? false;
 
   // Ensure active conversation is set (handles page refresh / direct navigation)
+  // Also clear unread count when entering a conversation
   useEffect(() => {
     if (!conversationId || !convKey) return;
     if (activeConvId !== conversationId) {
       openConversation(conversationId, convKey);
     }
+    useConversationsStore.getState().clearUnread(conversationId);
   }, [conversationId, convKey]);
 
   // Open message sync and pull metadata when conversation is ready
@@ -110,6 +115,33 @@ export default function ConversationScreen() {
       closeConversationSync();
     };
   }, [conversationId, convKey, historyDays]);
+
+  const handleEditMessage = useCallback(
+    (messageId: string, newText: string) => {
+      if (!conversationId || !convKey) return;
+      const now = new Date().toISOString();
+      useMessagesStore.getState().mergeMessages([
+        {
+          ...(useMessagesStore.getState().messages.find((m) => m.id === messageId)!),
+          text: newText,
+          editedAt: now,
+        },
+      ]);
+      notifyMessageSync();
+    },
+    [conversationId, convKey],
+  );
+
+  const handleDeleteMessage = useCallback(
+    (messageId: string) => {
+      if (!conversationId || !convKey) return;
+      const original = useMessagesStore.getState().messages.find((m) => m.id === messageId);
+      if (!original) return;
+      useMessagesStore.getState().mergeMessages([{ ...original, deleted: true }]);
+      notifyMessageSync();
+    },
+    [conversationId, convKey],
+  );
 
   const handleSend = useCallback(
     async (text: string) => {
@@ -198,21 +230,29 @@ export default function ConversationScreen() {
         </TouchableOpacity>
       </View>
 
-      {/* Messages */}
-      {loading ? (
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator color="#6366f1" />
-        </View>
-      ) : (
-        <MessageList
-          messages={messages}
-          selfUserId={userId}
-          isGroup={isGroup}
-        />
-      )}
+      <KeyboardAvoidingView
+        className="flex-1"
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={0}
+      >
+        {/* Messages */}
+        {loading ? (
+          <View className="flex-1 items-center justify-center">
+            <ActivityIndicator color="#6366f1" />
+          </View>
+        ) : (
+          <MessageList
+            messages={messages}
+            selfUserId={userId}
+            isGroup={isGroup}
+            onEditMessage={handleEditMessage}
+            onDeleteMessage={handleDeleteMessage}
+          />
+        )}
 
-      {/* Composer */}
-      <MessageComposer onSend={handleSend} />
+        {/* Composer */}
+        <MessageComposer onSend={handleSend} />
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

@@ -10,6 +10,8 @@ export interface Credentials {
   userId: string;
   authToken: string;
   encryptionSecret: string;
+  groupPublicKey: string;
+  groupPrivateKey: string;
 }
 
 /** Generate a random 12-word passphrase */
@@ -19,10 +21,16 @@ export function generatePassphrase(): string {
 
 /** Derive deterministic credentials from a passphrase */
 export async function deriveAuth(passphrase: string): Promise<Credentials> {
-  const { authToken, userId, encryptionSecret } = await deriveCredentials(
-    passphrase.trim(),
-  );
-  return { passphrase: passphrase.trim(), userId, authToken, encryptionSecret };
+  const { authToken, userId, encryptionSecret, groupPublicKey, groupPrivateKey } =
+    await deriveCredentials(passphrase.trim());
+  return {
+    passphrase: passphrase.trim(),
+    userId,
+    authToken,
+    encryptionSecret,
+    groupPublicKey,
+    groupPrivateKey,
+  };
 }
 
 /** Encode conversation invite data into a URL-safe base64 token */

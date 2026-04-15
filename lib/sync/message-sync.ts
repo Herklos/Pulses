@@ -17,6 +17,7 @@ import { useMessagesStore } from "@/store/useMessagesStore";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useActiveConversationStore } from "@/store/useActiveConversationStore";
 import { showMessageNotification } from "@/lib/notifications";
+import { useConversationsStore } from "@/store/useConversationsStore";
 import type { DayMessages } from "@/lib/types";
 
 let store: StoreApi<StarfishStore> | null = null;
@@ -52,7 +53,7 @@ export async function openConversationSync(
     syncManager,
     storage: false,
     onRemoteUpdate: (data) => {
-      const dayMessages = data as DayMessages;
+      const dayMessages = data as unknown as DayMessages;
       if (dayMessages?.messages) {
         const selfId = useAuthStore.getState().userId;
         const convMeta = useActiveConversationStore.getState().meta;
@@ -71,6 +72,7 @@ export async function openConversationSync(
             convMeta?.name ?? conversationId,
             conversationId,
           );
+          useConversationsStore.getState().incrementUnread(conversationId, newFromOthers.length);
         }
 
         useMessagesStore.getState().mergeMessages(dayMessages.messages);
@@ -88,7 +90,7 @@ export async function openConversationSync(
         messages,
         updatedAt: new Date().toISOString(),
       };
-      return dayMessages;
+      return dayMessages as unknown as Record<string, unknown>;
     },
   });
 
@@ -98,7 +100,7 @@ export async function openConversationSync(
   // Initial pull
   try {
     await syncManager.pull();
-    const data = syncManager.getData() as DayMessages | null;
+    const data = syncManager.getData() as unknown as DayMessages | null;
     if (data?.messages) {
       useMessagesStore.getState().mergeMessages(data.messages);
     }

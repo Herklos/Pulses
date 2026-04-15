@@ -1,13 +1,15 @@
 import "../global.css";
 import React, { useEffect } from "react";
-import { View, ActivityIndicator } from "react-native";
+import { View, ActivityIndicator, AppState } from "react-native";
 import { Stack, useRouter, useSegments } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import NetInfo from "@react-native-community/netinfo";
+import { createMobileLifecycle } from "@drakkar.software/starfish-client";
 import { useAuthStore } from "@/store/useAuthStore";
 import { initStarfish, teardownStarfish } from "@/lib/starfish";
-import { initIndexSync, teardownIndexSync } from "@/lib/sync/index-sync";
+import { initIndexSync, teardownIndexSync, getIndexStore } from "@/lib/sync/index-sync";
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
@@ -36,8 +38,20 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       return;
     }
     initStarfish(serverUrl, authToken);
-    initIndexSync({ encryptionSecret, userId, authToken }).catch(console.error);
+
+    let cleanupLifecycle: (() => void) | undefined;
+    initIndexSync({ encryptionSecret, userId, authToken }).then(() => {
+      const store = getIndexStore();
+      if (store) {
+        cleanupLifecycle = createMobileLifecycle(
+          store,
+          { appState: AppState, netInfo: NetInfo },
+        );
+      }
+    }).catch(console.error);
+
     return () => {
+      cleanupLifecycle?.();
       teardownIndexSync();
       teardownStarfish();
     };
