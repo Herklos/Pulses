@@ -70,14 +70,15 @@ export default function JoinScreen() {
         return;
       }
 
-      // Add self to conv-members first (grants "group-member" role for conv-meta/messages)
+      // Add self to conv-members (grants "group-member" role for conv-meta/messages)
       const membersResult = await pullConvMembers(conversationId);
-      const existingMemberIds = membersResult?.members.members ?? [];
-      if (!existingMemberIds.includes(userId)) {
+      if (!membersResult) throw new Error("Conversation not found");
+      const { members: currentMembers, hash: membersHash } = membersResult;
+      if (!currentMembers.members.includes(userId)) {
         await pushConvMembers(
           conversationId,
-          { members: [...existingMemberIds, userId] },
-          membersResult?.hash ?? null,
+          { members: [...currentMembers.members, userId] },
+          membersHash,
         );
       }
 
