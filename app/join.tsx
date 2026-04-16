@@ -10,7 +10,7 @@ import { useLocalSearchParams, useRouter } from "expo-router";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useConversationsStore } from "@/store/useConversationsStore";
 import { useActiveConversationStore } from "@/store/useActiveConversationStore";
-import { pullConversationMeta, pushConversationMeta } from "@/lib/sync/conversation-sync";
+import { pullConvMembers, pushConvMembers, pullConversationMeta, pushConversationMeta } from "@/lib/sync/conversation-sync";
 import { parseConvInviteToken } from "@/lib/identity";
 import type { ConversationIndexEntry } from "@/lib/types";
 
@@ -70,7 +70,18 @@ export default function JoinScreen() {
         return;
       }
 
-      // Pull and decrypt conversation metadata
+      // Add self to conv-members first (grants "group-member" role for conv-meta/messages)
+      const membersResult = await pullConvMembers(conversationId);
+      const existingMemberIds = membersResult?.members.members ?? [];
+      if (!existingMemberIds.includes(userId)) {
+        await pushConvMembers(
+          conversationId,
+          { members: [...existingMemberIds, userId] },
+          membersResult?.hash ?? null,
+        );
+      }
+
+      // Pull and decrypt conversation metadata (now accessible as group-member)
       const result = await pullConversationMeta(conversationId, conversationKey);
       const now = new Date().toISOString();
 

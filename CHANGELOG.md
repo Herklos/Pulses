@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.4.0] — 2026-04-16
+
+### Changed
+
+- **Starfish upgraded to v1.17.1** — bug-fixes only: TTL expiry was non-functional (always compared against zero instead of stored write timestamp); replica manager no longer crashes on corrupt documents; proxy push no longer leaks internal host/port; config-endpoint and polling errors are now logged instead of silently swallowed; mobile lifecycle flush/pull errors are now logged.
+- **`conv-meta` + `conv-messages` gated to group members** — `readRoles`/`writeRoles` changed from `["user"]` to `["group-member"]`. The server now rejects requests from users not listed in the conversation's member document. **Breaking: existing conversations have no `conv-members` document and will be inaccessible after this deploy. Clear the R2 bucket before upgrading.**
+
+### Added
+
+- **`createGroupRoleEnricher`** wired on the server — reads `conv/{conversationId}/members` (a plaintext JSON array of userId strings) and grants the `"group-member"` role to callers whose identity appears in the list. `cacheTtlMs: 0` so membership takes effect immediately on join.
+- **`conv-members` collection** — new plaintext collection (`conv/{conversationId}/members`) storing the userId list consumed by the enricher. `readRoles: ["user"]`, `writeRoles: ["user"]` (see POC limitations in README).
+- **`pullConvMembers` / `pushConvMembers`** client helpers in `lib/sync/conversation-sync.ts`.
+- **Create flow** pushes `conv-members` (with the creator's userId) before pushing `conv-meta`, so the creator has `group-member` access from the start.
+- **Join flow** pulls `conv-members`, adds the joiner's userId, pushes it back, then pulls `conv-meta` (now accessible).
+
 ## [0.3.0] — 2026-04-15
 
 ### Changed

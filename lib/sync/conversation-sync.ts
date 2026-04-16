@@ -1,6 +1,40 @@
 import { getClient } from "@/lib/starfish";
 import { createConversationEncryptor } from "@/lib/crypto";
-import type { ConversationMeta, DayMessages } from "@/lib/types";
+import type { ConversationMeta, ConvMembers, DayMessages } from "@/lib/types";
+
+// ---------------------------------------------------------------------------
+// Conv Members — plaintext server-side membership list for the group enricher
+// ---------------------------------------------------------------------------
+
+export async function pullConvMembers(
+  conversationId: string,
+): Promise<{ members: ConvMembers; hash: string } | null> {
+  try {
+    const client = getClient();
+    const result = await client.pull(`/pull/conv/${conversationId}/members`);
+    if (!result.data) return null;
+    return { members: result.data as unknown as ConvMembers, hash: result.hash };
+  } catch {
+    return null;
+  }
+}
+
+export async function pushConvMembers(
+  conversationId: string,
+  members: ConvMembers,
+  baseHash: string | null,
+): Promise<void> {
+  const client = getClient();
+  await client.push(
+    `/push/conv/${conversationId}/members`,
+    members as unknown as Record<string, unknown>,
+    baseHash,
+  );
+}
+
+// ---------------------------------------------------------------------------
+// Conv Meta — encrypted with conversationKey
+// ---------------------------------------------------------------------------
 
 export async function pullConversationMeta(
   conversationId: string,

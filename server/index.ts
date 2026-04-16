@@ -5,6 +5,7 @@ import {
   saveConfig,
   createConsoleLogger,
   createConsoleAuditLogger,
+  createGroupRoleEnricher,
   type ObjectStore,
   type AuthResult,
 } from "@drakkar.software/starfish-server";
@@ -117,10 +118,18 @@ function getSyncRouter(env: Env): Hono {
 
   const store = new R2ObjectStore(env.BUCKET);
 
+  const groupEnricher = createGroupRoleEnricher({
+    store,
+    membersPath: "conv/{conversationId}/members",
+    groupParam: "conversationId",
+    cacheTtlMs: 0, // No caching — membership takes effect immediately
+  });
+
   cachedRouter = createSyncRouter({
     store,
     config,
     roleResolver,
+    roleEnricher: groupEnricher,
     cors: true,
     securityHeaders: true,
     logger: createConsoleLogger(),

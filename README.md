@@ -23,10 +23,13 @@ Pulses uses the **starfish architecture** — a pattern where the server is a du
 |---|---|---|---|
 | `profile` | `profile/{identity}` | any user read, self write | Public display name |
 | `user-index` | `user-index/{identity}` | self only | Private encrypted conversation list |
-| `conv-meta` | `conv/{id}/meta` | any user | Encrypted conversation metadata |
-| `conv-messages` | `conv/{id}/msg/{date}` | any user | Encrypted per-day messages |
+| `conv-members` | `conv/{id}/members` | any user read/write | Plaintext member list (userId array) read by the group enricher |
+| `conv-meta` | `conv/{id}/meta` | group members only | Encrypted conversation metadata |
+| `conv-messages` | `conv/{id}/msg/{date}` | group members only | Encrypted per-day messages |
 
-Security is enforced by **encryption**, not by server roles — any user can fetch any conversation document, but only key holders can decrypt it.
+Access to `conv-meta` and `conv-messages` is enforced by `createGroupRoleEnricher` on the server: a request is granted the `"group-member"` role only if the caller's userId appears in `conv/{id}/members`. Non-members receive a 403 before they ever see an encrypted blob.
+
+> **POC limitation**: `conv-members` has `writeRoles: ["user"]`, so any authenticated user can add themselves to the membership list. A determined user with a valid auth token could therefore access any conversation's encrypted blobs — but they still cannot decrypt them without the conversation key. The enricher is a defense-in-depth measure, not a hard access boundary.
 
 ### Encryption
 
@@ -147,3 +150,4 @@ curl http://localhost:8787/health
 - **No key rotation** — removing a member from a group doesn't revoke their access to new messages (the conversation key is fixed)
 - **No push notifications** — background message delivery requires a separate notification service
 - **History window** — only the last N days of messages are loaded per conversation (configurable in Profile → Message History, default 7 days)
+- **Open member registration** — `conv-members` is writable by any authenticated user. Any user who knows a `conversationId` can add themselves and gain server access to the encrypted blobs. Confidentiality still depends entirely on not knowing the conversation key.

@@ -31,6 +31,16 @@ export interface UserIndex {
 }
 
 // ---------------------------------------------------------------------------
+// Conversation Members — stored in conv/{conversationId}/members, plaintext.
+// Read by the server's createGroupRoleEnricher to grant "group-member" role.
+// ---------------------------------------------------------------------------
+
+export interface ConvMembers {
+  members: string[]; // userId array
+  [key: string]: unknown;
+}
+
+// ---------------------------------------------------------------------------
 // Conversation Meta — stored in conv/{conversationId}/meta, encrypted with conversationKey
 // ---------------------------------------------------------------------------
 

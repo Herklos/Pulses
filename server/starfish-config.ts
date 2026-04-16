@@ -24,10 +24,13 @@ export const config: SyncConfig = {
       allowedMimeTypes: ["application/json"],
     },
     {
-      // Per-conversation metadata (name, members, active date keys) — encrypted client-side
-      // Any authenticated user can read/write; only key holders can decrypt
-      name: "conv-meta",
-      storagePath: "conv/{conversationId}/meta",
+      // Plaintext member list used by createGroupRoleEnricher to gate conv access.
+      // Any authenticated user can read (to check membership) and write (to add
+      // themselves). POC limitation: admin-only enforcement not implemented — a user
+      // could add themselves without an invite. Defense-in-depth only; actual
+      // confidentiality is provided by client-side encryption with the conversationKey.
+      name: "conv-members",
+      storagePath: "conv/{conversationId}/members",
       readRoles: ["user"],
       writeRoles: ["user"],
       encryption: "none",
@@ -35,12 +38,23 @@ export const config: SyncConfig = {
       allowedMimeTypes: ["application/json"],
     },
     {
-      // Per-conversation per-day messages — encrypted client-side
-      // storagePath uses two dynamic params: conversationId and dateKey (YYYY-MM-DD)
+      // Per-conversation metadata (name, members, active date keys) — encrypted client-side.
+      // Gated to group members via createGroupRoleEnricher (reads conv-members doc).
+      name: "conv-meta",
+      storagePath: "conv/{conversationId}/meta",
+      readRoles: ["group-member"],
+      writeRoles: ["group-member"],
+      encryption: "none",
+      maxBodyBytes: 65_536,
+      allowedMimeTypes: ["application/json"],
+    },
+    {
+      // Per-conversation per-day messages — encrypted client-side.
+      // Gated to group members via createGroupRoleEnricher.
       name: "conv-messages",
       storagePath: "conv/{conversationId}/msg/{dateKey}",
-      readRoles: ["user"],
-      writeRoles: ["user"],
+      readRoles: ["group-member"],
+      writeRoles: ["group-member"],
       encryption: "none",
       maxBodyBytes: 524_288,
       allowedMimeTypes: ["application/json"],

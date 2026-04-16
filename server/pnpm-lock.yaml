@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@drakkar.software/starfish-server':
-        specifier: 1.17.0
-        version: 1.17.0
+        specifier: 1.17.1
+        version: 1.17.1
       hono:
         specifier: 4.12.12
         version: 4.12.12
@@ -74,11 +74,11 @@ packages:
     resolution: {integrity: sha512-IchNf6dN4tHoMFIn/7OE8LWZ19Y6q/67Bmf6vnGREv8RSbBVb9LPJxEcnwrcwX6ixSvaiGoomAUvu4YSxXrVgw==}
     engines: {node: '>=12'}
 
-  '@drakkar.software/starfish-protocol@1.17.0':
-    resolution: {integrity: sha512-gu6UYwC73PE0bbsBG/d1P7CcKp5zePKdtO8LN49x9d40RABZFFD2xprWxCyFPG5kxTnNCxohd0AMao9DgEyirQ==}
+  '@drakkar.software/starfish-protocol@1.17.1':
+    resolution: {integrity: sha512-gxsX1z9ZaJA2/YTWekGzr82OMuMYUFSDbdVfkjIcNdxXogY1NmuewX7ofzQ1+UcIY5dSdzo8t5bAPFRxzDUg/g==}
 
-  '@drakkar.software/starfish-server@1.17.0':
-    resolution: {integrity: sha512-v4+lqAxbEoixboBCrUfqhREeCrIgRc1rduSdZTYrKrtP+C8mPwUodZwhta4A0gIICj27OZO4ueS24LCViu2kRA==}
+  '@drakkar.software/starfish-server@1.17.1':
+    resolution: {integrity: sha512-Jn5w03ok0vBJvks2dNFR1aj/EYsAGeZb29RjGXThSSSnXM5el7IFoUpioBrIdwjbPNKOQmwFtB1hlFOUQnNiPg==}
     peerDependencies:
       '@aws-sdk/client-s3': '>=3.0.0'
       ajv: '>=8.0.0'
@@ -556,11 +556,11 @@ snapshots:
     dependencies:
       '@jridgewell/trace-mapping': 0.3.9
 
-  '@drakkar.software/starfish-protocol@1.17.0': {}
+  '@drakkar.software/starfish-protocol@1.17.1': {}
 
-  '@drakkar.software/starfish-server@1.17.0':
+  '@drakkar.software/starfish-server@1.17.1':
     dependencies:
-      '@drakkar.software/starfish-protocol': 1.17.0
+      '@drakkar.software/starfish-protocol': 1.17.1
       hono: 4.12.12
 
   '@emnapi/runtime@1.9.2':

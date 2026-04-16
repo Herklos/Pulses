@@ -17,7 +17,7 @@ import * as Crypto from "expo-crypto";
 import { useAuthStore } from "@/store/useAuthStore";
 import { useConversationsStore } from "@/store/useConversationsStore";
 import { useActiveConversationStore } from "@/store/useActiveConversationStore";
-import { pushConversationMeta } from "@/lib/sync/conversation-sync";
+import { pushConvMembers, pushConversationMeta } from "@/lib/sync/conversation-sync";
 import type { ConversationIndexEntry, ConversationMeta } from "@/lib/types";
 
 function generateConversationKey(): string {
@@ -71,7 +71,10 @@ export default function NewConversationScreen() {
         activeDateKeys: [],
       };
 
-      // Push conversation meta to server
+      // Push members list first (grants "group-member" role for subsequent writes)
+      await pushConvMembers(conversationId, { members: [userId] }, null);
+
+      // Push conversation meta to server (now gated to group-member)
       await pushConversationMeta(conversationId, conversationKey, meta);
 
       // Add to local conversation index
