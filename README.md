@@ -1,5 +1,7 @@
 # Pulses
 
+## REPLACED BY https://github.com/Drakkar-Software/OctoChat
+
 A proof-of-concept **end-to-end encrypted chat app** with direct messages and group conversations. Built with Expo (iOS/Android/Web) and a Cloudflare Workers + R2 backend using the [Starfish sync protocol](https://github.com/Drakkar-Software/satellite).
 
 ## Architecture
